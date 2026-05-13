@@ -144,5 +144,15 @@ test('non-ASCII title falls back to a doc- prefixed slug', function () {
     assert_true($ok === 1, "unexpected fallback slug shape: {$slug}");
 });
 
+test('admin search filters documents by title substring', function () {
+    $stmt = db()->prepare('INSERT INTO documents (title, body, created_by, slug) VALUES (?, ?, 1, ?)');
+    $stmt->execute(['Q4 Budget Report', 'a', generate_slug('Q4 Budget Report')]);
+    $stmt->execute(['Q1 Planning Doc', 'b', generate_slug('Q1 Planning Doc')]);
+
+    $html = http_get('/admin.php?q=Budget');
+    assert_true(str_contains($html, 'Q4 Budget Report'), 'search should include matching doc');
+    assert_true(!str_contains($html, 'Q1 Planning Doc'), 'search should exclude non-matching doc');
+});
+
 echo "\n{$pass} passed, {$fail} failed.\n";
 exit($fail > 0 ? 1 : 0);
