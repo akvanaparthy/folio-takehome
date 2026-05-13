@@ -22,7 +22,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute([$title, $body, $staff['id'], $publish_at]);
         $docId = (int) db()->lastInsertId();
 
-        audit_log('create', 'document', $docId, ['title' => $title]);
+        $details = ['title' => $title];
+        if ($publish_at !== null) {
+            $details['publish_at'] = $publish_at;
+        }
+        audit_log('create', 'document', $docId, $details);
 
         header('Location: /admin.php?created=' . $docId);
         exit;
