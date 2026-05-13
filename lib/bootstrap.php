@@ -46,3 +46,13 @@ function random_token(int $bytes = 16): string {
 function h(string $s): string {
     return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
 }
+
+function now_utc(): string {
+    return (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format('Y-m-d H:i:s');
+}
+
+function format_display(string $utc): string {
+    $dt = new DateTimeImmutable($utc, new DateTimeZone('UTC'));
+    $dt = $dt->setTimezone(new DateTimeZone(date_default_timezone_get()));
+    return $dt->format('M j, Y g:i A T');
+}

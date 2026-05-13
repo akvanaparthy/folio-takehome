@@ -27,6 +27,18 @@ if (!$doc) {
     exit;
 }
 
+if (!empty($doc['publish_at']) && $doc['publish_at'] > now_utc()) {
+    render_header('Not yet available');
+    ?>
+    <div class="centered-message">
+        <h1>This document isn't available yet</h1>
+        <p>It will become available on <strong><?= h(format_display($doc['publish_at'])) ?></strong>.</p>
+    </div>
+    <?php
+    render_footer();
+    exit;
+}
+
 render_header($doc['title']);
 ?>
 
