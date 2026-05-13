@@ -61,3 +61,39 @@ function to_utc(string $local): string {
     $dt = new DateTimeImmutable($local, new DateTimeZone(date_default_timezone_get()));
     return $dt->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
 }
+
+function slugify(string $title): string {
+    $s = strtolower($title);
+    $s = preg_replace('/[^a-z0-9]+/', '-', $s) ?? '';
+    $s = trim($s, '-');
+    if (strlen($s) > 50) {
+        $s = rtrim(substr($s, 0, 50), '-');
+    }
+    return $s;
+}
+
+function random_slug_suffix(int $len = 4): string {
+    $chars = 'abcdefghjkmnpqrstuvwxyz23456789';
+    $n = strlen($chars);
+    $out = '';
+    for ($i = 0; $i < $len; $i++) {
+        $out .= $chars[random_int(0, $n - 1)];
+    }
+    return $out;
+}
+
+function generate_slug(string $title): string {
+    $base = slugify($title);
+    if ($base === '') {
+        $base = 'doc';
+    }
+    $stmt = db()->prepare('SELECT 1 FROM documents WHERE slug = ? LIMIT 1');
+    for ($i = 0; $i < 5; $i++) {
+        $candidate = $base . '-' . random_slug_suffix(4);
+        $stmt->execute([$candidate]);
+        if ($stmt->fetchColumn() === false) {
+            return $candidate;
+        }
+    }
+    throw new RuntimeException('Could not generate a unique slug after 5 attempts.');
+}

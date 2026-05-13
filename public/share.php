@@ -4,10 +4,15 @@ require __DIR__ . '/../lib/bootstrap.php';
 require __DIR__ . '/../lib/layout.php';
 
 $staff = current_staff();
-$docId = (int) ($_GET['doc'] ?? 0);
-$stmt = db()->prepare('SELECT * FROM documents WHERE id = ?');
-$stmt->execute([$docId]);
+$docKey = (string) ($_GET['doc'] ?? '');
+$stmt = db()->prepare('SELECT * FROM documents WHERE slug = ?');
+$stmt->execute([$docKey]);
 $doc = $stmt->fetch();
+if (!$doc && ctype_digit($docKey)) {
+    $stmt = db()->prepare('SELECT * FROM documents WHERE id = ?');
+    $stmt->execute([(int) $docKey]);
+    $doc = $stmt->fetch();
+}
 
 if (!$doc) {
     http_response_code(404);

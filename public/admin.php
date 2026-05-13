@@ -15,14 +15,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($title === '' || $body === '') {
         $error = 'Title and body are required.';
     } else {
+        $slug = generate_slug($title);
         $stmt = db()->prepare('
-            INSERT INTO documents (title, body, created_by, publish_at)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO documents (title, body, created_by, publish_at, slug)
+            VALUES (?, ?, ?, ?, ?)
         ');
-        $stmt->execute([$title, $body, $staff['id'], $publish_at]);
+        $stmt->execute([$title, $body, $staff['id'], $publish_at, $slug]);
         $docId = (int) db()->lastInsertId();
 
-        $details = ['title' => $title];
+        $details = ['title' => $title, 'slug' => $slug];
         if ($publish_at !== null) {
             $details['publish_at'] = $publish_at;
         }
@@ -91,7 +92,7 @@ render_header('Admin', $staff);
             <tbody>
                 <?php foreach ($docs as $d): ?>
                     <tr>
-                        <td class="id">#<?= (int) $d['id'] ?></td>
+                        <td class="id"><?= h($d['slug'] ?? '#' . (int) $d['id']) ?></td>
                         <td>
                             <?= h($d['title']) ?>
                             <?php if (!empty($d['publish_at']) && $d['publish_at'] > now_utc()): ?>
@@ -100,7 +101,7 @@ render_header('Admin', $staff);
                         </td>
                         <td><?= h($d['creator_name']) ?></td>
                         <td><?= h($d['created_at']) ?></td>
-                        <td><a href="/share.php?doc=<?= (int) $d['id'] ?>" class="btn-link">Create share →</a></td>
+                        <td><a href="/share.php?doc=<?= h($d['slug'] ?? (string) (int) $d['id']) ?>" class="btn-link">Create share →</a></td>
                     </tr>
                 <?php endforeach ?>
             </tbody>
