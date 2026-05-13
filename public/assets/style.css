@@ -355,3 +355,23 @@ table.data td.id {
     color: var(--text-muted);
     font-size: 0.85em;
 }
+
+.search-form {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.search-form input[type="search"] {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 0.95rem;
+    font-family: inherit;
+}
+
+.search-form .btn-link {
+    margin-left: 0.25rem;
+}
