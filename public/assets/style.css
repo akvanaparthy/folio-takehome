@@ -332,3 +332,26 @@ table.data td.id {
     margin: 0;
     font-size: 0.95rem;
 }
+
+.badge {
+    display: inline-block;
+    padding: 0.1rem 0.5rem;
+    margin-left: 0.5rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    vertical-align: middle;
+    border: 1px solid;
+}
+
+.badge-scheduled {
+    background: var(--warn-bg);
+    color: var(--warn-text);
+    border-color: var(--warn-border);
+}
+
+.form-field .hint {
+    font-weight: normal;
+    color: var(--text-muted);
+    font-size: 0.85em;
+}

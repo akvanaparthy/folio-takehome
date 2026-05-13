@@ -9,15 +9,17 @@ $error = null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = trim($_POST['title'] ?? '');
     $body = trim($_POST['body'] ?? '');
+    $publish_at_local = trim($_POST['publish_at'] ?? '');
+    $publish_at = $publish_at_local === '' ? null : to_utc($publish_at_local);
 
     if ($title === '' || $body === '') {
         $error = 'Title and body are required.';
     } else {
         $stmt = db()->prepare('
-            INSERT INTO documents (title, body, created_by)
-            VALUES (?, ?, ?)
+            INSERT INTO documents (title, body, created_by, publish_at)
+            VALUES (?, ?, ?, ?)
         ');
-        $stmt->execute([$title, $body, $staff['id']]);
+        $stmt->execute([$title, $body, $staff['id'], $publish_at]);
         $docId = (int) db()->lastInsertId();
 
         audit_log('create', 'document', $docId, ['title' => $title]);
@@ -59,6 +61,10 @@ render_header('Admin', $staff);
             <label for="body">Body</label>
             <textarea id="body" name="body" required></textarea>
         </div>
+        <div class="form-field">
+            <label for="publish_at">Publish at <span class="hint">(optional &mdash; leave blank to publish immediately)</span></label>
+            <input type="datetime-local" id="publish_at" name="publish_at">
+        </div>
         <button type="submit" class="btn">Create document</button>
     </form>
 </section>
@@ -82,7 +88,12 @@ render_header('Admin', $staff);
                 <?php foreach ($docs as $d): ?>
                     <tr>
                         <td class="id">#<?= (int) $d['id'] ?></td>
-                        <td><?= h($d['title']) ?></td>
+                        <td>
+                            <?= h($d['title']) ?>
+                            <?php if (!empty($d['publish_at']) && $d['publish_at'] > now_utc()): ?>
+                                <span class="badge badge-scheduled">Scheduled for <?= h(format_display($d['publish_at'])) ?></span>
+                            <?php endif ?>
+                        </td>
                         <td><?= h($d['creator_name']) ?></td>
                         <td><?= h($d['created_at']) ?></td>
                         <td><a href="/share.php?doc=<?= (int) $d['id'] ?>" class="btn-link">Create share →</a></td>

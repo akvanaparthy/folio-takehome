@@ -56,3 +56,8 @@ function format_display(string $utc): string {
     $dt = $dt->setTimezone(new DateTimeZone(date_default_timezone_get()));
     return $dt->format('M j, Y g:i A T');
 }
+
+function to_utc(string $local): string {
+    $dt = new DateTimeImmutable($local, new DateTimeZone(date_default_timezone_get()));
+    return $dt->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
+}
