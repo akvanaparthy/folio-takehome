@@ -115,5 +115,34 @@ test('admin create records publish_at in audit_log details', function () {
     assert_true(str_starts_with($details['publish_at'], '2099-06-01'), 'publish_at should be the UTC-converted value');
 });
 
+test('generated slug has the expected shape', function () {
+    $slug = generate_slug('Some Sample Title');
+    $ok = preg_match('/^[a-z0-9-]+-[abcdefghjkmnpqrstuvwxyz23456789]{4}$/', $slug);
+    assert_true($ok === 1, "unexpected slug shape: {$slug}");
+});
+
+test('two documents with identical titles get distinct slugs', function () {
+    $a = generate_slug('Duplicate Title');
+    $stmt = db()->prepare('INSERT INTO documents (title, body, created_by, slug) VALUES (?, ?, 1, ?)');
+    $stmt->execute(['Duplicate Title', 'a', $a]);
+    $b = generate_slug('Duplicate Title');
+    assert_true($a !== $b, "expected distinct slugs, got: {$a} / {$b}");
+});
+
+test('share.php resolves a document by slug', function () {
+    $slug = generate_slug('Resolve By Slug');
+    $stmt = db()->prepare('INSERT INTO documents (title, body, created_by, slug) VALUES (?, ?, 1, ?)');
+    $stmt->execute(['Resolve By Slug', 'b', $slug]);
+
+    $html = http_get('/share.php?doc=' . $slug);
+    assert_true(str_contains($html, 'Resolve By Slug'), 'share page should resolve the doc by slug');
+});
+
+test('non-ASCII title falls back to a doc- prefixed slug', function () {
+    $slug = generate_slug('???');
+    $ok = preg_match('/^doc-[abcdefghjkmnpqrstuvwxyz23456789]{4}$/', $slug);
+    assert_true($ok === 1, "unexpected fallback slug shape: {$slug}");
+});
+
 echo "\n{$pass} passed, {$fail} failed.\n";
 exit($fail > 0 ? 1 : 0);
